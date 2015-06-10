@@ -1,0 +1,23 @@
+- name: install rbenv
+  git: repo=git://github.com/sstephenson/rbenv.git dest=/home/{{ user }}/.rbenv update=no accept_hostkey=yes
+
+- name: install ruby build
+  git: repo=git://github.com/sstephenson/ruby-build.git dest=/home/{{ user }}/.rbenv/plugins/ruby-build update=no accept_hostkey=yes
+
+- name: install rbenv-gem-rehash
+  git: repo=git://github.com/sstephenson/rbenv-gem-rehash.git dest=/home/{{ user }}/.rbenv/plugins/rbenv-gem-rehash update=no accept_hostkey=yes
+
+- name: copy bash fragment
+  copy: src=200_rbenv.sh dest=/home/{{ user }}/.bash.d/ mode=0744 owner={{ user }} group={{ user }}
+
+- name: check whether a specific version of ruby is installed
+  shell: rbenv versions | grep {{ ruby_version }} | tr '*' ' ' | sed -e 's/\s\+//' | cut -f1 -d ' '
+  register: rbenv_ruby_version
+
+- name: install ruby
+  shell: rbenv install {{ ruby_version }}
+  when: rbenv_ruby_version.stdout != '{{ ruby_version }}'
+
+- name: set rbenv global
+  shell: rbenv global {{ ruby_version }}
+  when: rbenv_ruby_version.stdout != '{{ ruby_version }}'

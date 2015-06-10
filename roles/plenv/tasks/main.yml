@@ -1,0 +1,23 @@
+- name: install plenv
+  git: repo=git://github.com/tokuhirom/plenv.git dest=/home/{{ user }}/.plenv update=no accept_hostkey=yes
+
+- name: install perl-build
+  git: repo=git://github.com/tokuhirom/Perl-Build.git dest=/home/{{ user }}/.plenv/plugins/perl-build/ update=no accept_hostkey=yes
+
+- name: copy bash fragment
+  copy: src=200_plenv.sh dest=/home/{{ user }}/.bash.d/ mode=0744 owner={{ user }} group={{ user }}
+
+- name: rehash
+  shell: plenv rehash
+
+- name: check whether a specific version of perl is installed
+  shell: plenv versions | grep {{ perl_version }} | tr '*' ' ' | sed -e 's/\s\+//' | cut -f1 -d ' '
+  register: plenv_perl_version
+
+- name: install perl
+  shell: plenv install {{ perl_version }}
+  when: plenv_perl_version.stdout != '{{ perl_version }}'
+
+- name: set plenv global
+  shell: plenv global {{ perl_version }}
+  when: plenv_perl_version.stdout != '{{ perl_version }}'

@@ -1,0 +1,11 @@
+---
+- hosts: envs
+  sudo: no
+  vars_files:
+    - group_vars/common.yml
+  roles:
+    - basic
+    - rbenv
+#    - pyenv
+#    - plenv
+    - phpenv

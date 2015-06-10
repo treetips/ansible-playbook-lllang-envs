@@ -1,0 +1,60 @@
+- name: is installed phpenv
+  stat: path=.phpenv
+  register: installed_phpenv
+
+- name: download phpenv
+  get_url: url=https://raw.github.com/CHH/phpenv/master/bin/phpenv-install.sh dest=/tmp/phpenv-install.sh
+  when: installed_phpenv.stat.exists == false
+
+- name: chown phpenv-install.sh
+  file: path=/tmp/phpenv-install.sh mode=0744 owner={{ user }} group={{ group }}
+  when: installed_phpenv.stat.exists == false
+
+- name: install phpenv
+  shell: /tmp/phpenv-install.sh
+  when: installed_phpenv.stat.exists == false
+
+- name: install php-build
+  git: repo=git://github.com/CHH/php-build.git dest=/home/{{ user }}/.phpenv/plugins/php-build update=no accept_hostkey=yes
+  when: installed_phpenv.stat.exists == false
+
+- name: copy bash fragment
+  copy: src=200_phpenv.sh dest=/home/{{ user }}/.bash.d/ mode=0744 owner={{ user }} group={{ group }}
+
+- name: rehash
+  shell: phpenv rehash
+
+- name: install dependencies
+  yum: name={{ item }} state=present
+  with_items:
+    - epel-release
+    - bison
+    - autoconf
+    - automake
+    - readline-devel
+    - libxslt-devel
+    - libxml2-devel
+    - libjpeg-devel
+    - libpng-devel
+    - freetype-devel
+    - libcurl-devel
+  sudo: yes
+
+- name: install epel dependencies
+  yum: name={{ item }} state=present enablerepo=epel
+  with_items:
+    - libmcrypt-devel
+    - libtidy-devel
+  sudo: yes
+
+- name: check whether a specific version of php is installed
+  shell: phpenv versions | grep {{ php_version }} | tr '*' ' ' | sed -e 's/\s\+//' | cut -f1 -d ' '
+  register: phpenv_php_version
+
+- name: install php
+  shell: phpenv install {{ php_version }}
+  when: phpenv_php_version.stdout != '{{ php_version }}'
+
+- name: set plenv global
+  shell: phpenv global {{ php_version }}
+  when: phpenv_php_version.stdout != '{{ php_version }}'

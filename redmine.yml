@@ -1,0 +1,10 @@
+---
+- hosts: redmine
+  sudo: no
+  vars_files:
+    - group_vars/common.yml # 共通変数
+  roles:
+    - basic
+    - rbenv
+    - mariadb
+    - redmine

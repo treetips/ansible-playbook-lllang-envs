@@ -1,0 +1,21 @@
+- name: create bash flagment dirctory
+  file: path=/home/{{ user }}/.bash.d/ owner={{ user }} group={{ user }} state=directory
+
+- name: copy .bash_profile
+  copy: src=bash_profile.sh dest=/home/{{ user }}/.bash_profile mode=0644
+
+- name: set locale
+  shell: cp -p /usr/share/zoneinfo/Japan /etc/localtime
+  sudo: yes
+
+- name: update bash
+  yum: name=bash state=latest
+  sudo: yes
+
+- name: install optional packages
+  yum: name={{ item }} state=present
+  with_items:
+    - unzip
+    - tree
+    - mailx
+  sudo: yes

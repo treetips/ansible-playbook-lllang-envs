@@ -1,0 +1,20 @@
+- name: install pyenv
+  git: repo=git://github.com/yyuu/pyenv.git dest=/home/{{ user }}/.pyenv update=no accept_hostkey=yes
+
+- name: install pyenv-pip-rehash
+  git: repo=git://github.com/yyuu/pyenv-pip-rehash.git dest=/home/{{ user }}/.pyenv/plugins/pyenv-pip-rehash update=no accept_hostkey=yes
+
+- name: copy bash fragment
+  copy: src=200_pyenv.sh dest=/home/{{ user }}/.bash.d/ mode=0744 owner={{ user }} group={{ user }}
+
+- name: check whether a specific version of python is installed
+  shell: pyenv versions | grep {{ python_version }} | tr '*' ' ' | sed -e 's/\s\+//' | cut -f1 -d ' '
+  register: pyenv_python_version
+
+- name: install python
+  shell: pyenv install {{ python_version }}
+  when: pyenv_python_version.stdout != '{{ python_version }}'
+
+- name: set pyenv global
+  shell: pyenv global {{ python_version }}
+  when: pyenv_python_version.stdout != '{{ python_version }}'
