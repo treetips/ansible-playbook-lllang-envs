@@ -6,6 +6,6 @@
   roles:
     - basic
     - rbenv
-#    - pyenv
-#    - plenv
+    - pyenv
+    - plenv
     - phpenv
